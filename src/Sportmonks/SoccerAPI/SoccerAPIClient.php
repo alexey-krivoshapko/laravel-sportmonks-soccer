@@ -15,12 +15,14 @@ class SoccerAPIClient {
     protected $include = [];
     protected $perPage = 50;
     protected $page = 1;
-    
+    protected $leagues = [];
+
     public function __construct()
     {
         $options = [
             'base_uri'  => 'https://soccer.sportmonks.com/api/v2.0/',
             'verify'    => app('env') === 'testing' ? false : true,
+            'http_errors'     => false
         ];
         $this->client = new Client($options);
 
@@ -38,25 +40,30 @@ class SoccerAPIClient {
         $query = [
             'api_token' => $this->apiToken,
             'per_page' => $this->perPage,
-            'page' => $this->page
+            'page' => $this->page,
+            'tz' => 'Europe/Kiev'
         ];
         if(count($this->include))
         {
             $query['include'] = $this->include;
         }
-
+        if(count($this->leagues))
+        {
+            $query['leagues'] = $this->leagues;
+        }
         $response = $this->client->get($url, ['query' => $query]);
 
         $body = json_decode($response->getBody()->getContents());
-
         if(property_exists($body, 'error'))
         {
             if(is_object($body->error))
             {
+                abort(403);
                 throw new ApiRequestException($body->error->message, $body->error->code);
             }
             else
             {
+                abort(500);
                 throw new ApiRequestException($body->error, 500);
             }
 
@@ -87,6 +94,21 @@ class SoccerAPIClient {
         }
 
         $this->include = $include;
+
+        return $this;
+    }
+
+    /**
+     * @param $parameters - string or array
+     */
+    public function setLeagues($leagues)
+    {
+        if(is_array($leagues))
+        {
+            $leagues = implode(',', $leagues);
+        }
+
+        $this->leagues = $leagues;
 
         return $this;
     }
