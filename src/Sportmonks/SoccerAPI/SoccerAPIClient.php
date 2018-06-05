@@ -41,7 +41,7 @@ class SoccerAPIClient {
             'api_token' => $this->apiToken,
             'per_page' => $this->perPage,
             'page' => $this->page,
-            'tz' => 'Europe/Kiev'
+            'tz' => 'UTC'
         ];
         if(count($this->include))
         {
